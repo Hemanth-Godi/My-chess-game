@@ -1,0 +1,47 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+body{
+  margin:0;
+  height:100vh;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#111;
+}
+.board{
+  width:800px;
+  height:800px;
+
+  background-image:url("images/chessBoard.png");
+  background-size:cover;
+  background-position:center;
+  position:relative;
+}
+.play-area{
+  position:absolute;
+  top:55px;
+  left:70px;
+
+  width:660px;
+  height:660px;
+
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  grid-template-rows:repeat(8,1fr);
+}
+.square{
+  position:relative;
+}
+.piece{
+  width:80%;
+  height:80%;
+  object-fit:contain;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+}
