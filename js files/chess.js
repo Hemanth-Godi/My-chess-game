@@ -51,11 +51,218 @@ squares.forEach(square=>{
       }
     }
     else{
+      if(selected.row===row && selected.col===col){
+        selected = null;
+        return;
+      }
+      const piece = board[selected.row][selected.col];
+      let validMove = isValidMove(
+        piece,
+        selected.row,
+        selected.col,
+        row,
+        col);
+      let pathClear = true;
+      if(validMove){
+        if(piece==="wr"||piece==="br"){
+          pathClear = isPathClearRook(
+            selected.row,
+            selected.col,
+            row,
+            col
+          );
+        }
+        else if(piece==="wb"||piece==="bb"){
+          pathClear = isPathClearBishop(
+            selected.row,
+            selected.col,
+            row,
+            col
+          );
+        }
+        else if(piece==="wq"||piece==="bq"){
+          pathClear = isPathClearQueen(
+            selected.row,
+            selected.col,
+            row,
+            col
+          );
+        }
+     }
+     if(validMove && pathClear){
       board[row][col] = board[selected.row][selected.col];
       board[selected.row][selected.col] = "";
-      selected = null;
       renderBoard();
-    }
+     }
+     selected = null;
+   }
   });
 });
+
+function isValidMove(piece,fromRow,fromCol,toRow,toCol){
+  switch(piece){
+    case "wr":
+    case "br":
+      return isValidRookMove(fromRow,fromCol,toRow,toCol);
+
+    case "wb":
+    case "bb":
+      return isValidBishopMove(fromRow,fromCol,toRow,toCol);
+
+    case "wn":
+    case "bn":
+      return isValidKnightMove(fromRow,fromCol,toRow,toCol);
+
+    case "wq":
+    case "bq":
+      return isValidQueenMove(fromRow,fromCol,toRow,toCol);
+
+    case "wk":
+    case "bk":
+      return isValidKingMove(fromRow,fromCol,toRow,toCol);
+
+    case "wp":
+    case "bp":
+      return isValidPawnMove(piece,fromRow,fromCol,toRow,toCol);
+  }
+  return false;
+}
+function isValidRookMove(fromRow,fromCol,toRow,toCol){
+  return(
+    fromRow===toRow || fromCol===toCol
+  );
+}
+function isValidBishopMove(fromRow,fromCol,toRow,toCol){
+  return(
+    Math.abs(toRow-fromRow)===Math.abs(toCol-fromCol)
+  );
+}
+function isValidKnightMove(fromRow,fromCol,toRow,toCol){
+  const rowDiff = Math.abs(toRow-fromRow);
+  const colDiff = Math.abs(toCol-fromCol);
+  return(
+    (rowDiff===2 && colDiff===1) || (rowDiff===1 && colDiff===2)
+  );
+}
+function isValidQueenMove(fromRow,fromCol,toRow,toCol){
+  return(
+    isValidRookMove(fromRow,fromCol,toRow,toCol) ||
+    isValidBishopMove(fromRow,fromCol,toRow,toCol)
+  );
+}
+function isValidKingMove(fromRow,fromCol,toRow,toCol){
+  const rowDiff = Math.abs(toRow-fromRow);
+  const colDiff = Math.abs(toCol-fromCol);
+  return(
+    rowDiff<=1 && colDiff<=1
+  );
+}
+function isValidPawnMove(piece,fromRow,fromCol,toRow,toCol){
+  if(fromCol!==toCol){
+    return false;
+  }
+  if(piece==="wp"){
+    if(toRow===fromRow-1){
+      return true;
+    }
+    if(fromRow===6 && toRow===4){
+      return true;
+    }
+  }
+  if(piece==="bp"){
+    if(toRow===fromRow+1){
+      return true;
+    } 
+    if(fromRow===1 && toRow===3){
+      return true;
+    }
+  }
+  return false;
+}
+//Collision detection
+function isPathClearRook(
+    fromRow,
+    fromCol,
+    toRow,
+    toCol
+){
+    if(fromRow === toRow){
+        const step =
+            toCol > fromCol ? 1 : -1;
+        for(
+            let col = fromCol + step;
+            col !== toCol;
+            col += step
+        ){
+            if(board[fromRow][col] !== ""){
+                return false;
+            }
+        }
+    }
+    if(fromCol === toCol){
+        const step =
+            toRow > fromRow ? 1 : -1;
+        for(
+            let row = fromRow + step;
+            row !== toRow;
+            row += step
+        ){
+            if(board[row][fromCol] !== ""){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function isPathClearBishop(
+    fromRow,
+    fromCol,
+    toRow,
+    toCol
+){
+    const rowStep =
+        toRow > fromRow ? 1 : -1;
+    const colStep =
+        toCol > fromCol ? 1 : -1;
+    let row = fromRow + rowStep;
+    let col = fromCol + colStep;
+    while(
+        row !== toRow &&
+        col !== toCol
+    ){
+        if(board[row][col] !== ""){
+            return false;
+        }
+        row += rowStep;
+        col += colStep;
+    }
+    return true;
+}
+
+function isPathClearQueen(
+    fromRow,
+    fromCol,
+    toRow,
+    toCol
+){
+    if(
+        fromRow === toRow ||
+        fromCol === toCol
+    ){
+        return isPathClearRook(
+            fromRow,
+            fromCol,
+            toRow,
+            toCol
+        );
+    }
+    return isPathClearBishop(
+        fromRow,
+        fromCol,
+        toRow,
+        toCol
+    );
+}
+
 
