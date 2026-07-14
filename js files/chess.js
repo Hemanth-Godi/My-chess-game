@@ -95,9 +95,24 @@ squares.forEach(square=>{
           );
         }
      }
-     if(validMove && pathClear){
+     const color = piece[0];
+     if(validMove && pathClear 
+      && !wouldLeaveKingInCheck(
+        selected.row,
+        selected.col,
+        row,
+        col,
+        color
+      )
+     ){
       board[row][col] = board[selected.row][selected.col];
       board[selected.row][selected.col] = "";
+      if(isKingInCheck("w")){
+        console.log("White in check");
+      }
+      if(isKingInCheck("b")){
+        console.log("Black in check");
+      }
       currentPlayer = currentPlayer==="w"?"b":"w";
       console.log("Turn",currentPlayer);
       renderBoard();
@@ -285,5 +300,115 @@ function isPathClearQueen(
         toCol
     );
 }
-
+//check detection
+function findKing(color){
+    const king = color + "k";
+    for(let row=0; row<8; row++){
+        for(let col=0; col<8; col++){
+            if(board[row][col] === king){
+                return {
+                    row,
+                    col
+                };
+            }
+        }
+    }
+    return null;
+}
+function isPathClear(
+    piece,
+    fromRow,
+    fromCol,
+    toRow,
+    toCol
+){
+    if(piece==="wr" || piece==="br"){
+        return isPathClearRook(
+            fromRow,
+            fromCol,
+            toRow,
+            toCol
+        );
+    }
+    if(piece==="wb" || piece==="bb"){
+        return isPathClearBishop(
+            fromRow,
+            fromCol,
+            toRow,
+            toCol
+        );
+    }
+    if(piece==="wq" || piece==="bq"){
+        return isPathClearQueen(
+            fromRow,
+            fromCol,
+            toRow,
+            toCol
+        );
+    }
+    return true;
+}
+function isKingInCheck(color){
+    const kingPos = findKing(color);
+    const enemyColor =
+        color === "w"
+        ? "b"
+        : "w";
+    for(let row=0; row<8; row++){
+        for(let col=0; col<8; col++){
+            const piece = board[row][col];
+            if(
+                piece !== "" &&
+                piece[0] === enemyColor
+            ){
+                const validMove =
+                    isValidMove(
+                        piece,
+                        row,
+                        col,
+                        kingPos.row,
+                        kingPos.col
+                    );
+                const pathClear =
+                    isPathClear(
+                        piece,
+                        row,
+                        col,
+                        kingPos.row,
+                        kingPos.col
+                    );
+                if(validMove && pathClear){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+function wouldLeaveKingInCheck(
+    fromRow,
+    fromCol,
+    toRow,
+    toCol,
+    color
+){
+    const movingPiece =
+        board[fromRow][fromCol];
+    const capturedPiece =
+        board[toRow][toCol];
+    // Make move temporarily
+    board[toRow][toCol] =
+        movingPiece;
+    board[fromRow][fromCol] =
+        "";
+    // Check king safety
+    const kingInCheck =
+        isKingInCheck(color);
+    // Undo move
+    board[fromRow][fromCol] =
+        movingPiece;
+    board[toRow][toCol] =
+        capturedPiece;
+    return kingInCheck;
+}
 
