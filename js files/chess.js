@@ -113,6 +113,12 @@ squares.forEach(square=>{
       if(isKingInCheck("b")){
         console.log("Black in check");
       }
+      if(isCheckmate("w")){
+        console.log("Checkmate! Black wins!");
+      }
+      if(isCheckmate("b")){
+        console.log("Checkmate! White wins!");
+      }
       currentPlayer = currentPlayer==="w"?"b":"w";
       console.log("Turn",currentPlayer);
       renderBoard();
@@ -410,5 +416,74 @@ function wouldLeaveKingInCheck(
     board[toRow][toCol] =
         capturedPiece;
     return kingInCheck;
+}
+function isCheckmate(color){
+    if(!isKingInCheck(color)){
+        return false;
+    }
+    for(let fromRow=0; fromRow<8; fromRow++){
+        for(let fromCol=0; fromCol<8; fromCol++){
+            const piece = board[fromRow][fromCol];
+            if(
+                piece === "" ||
+                piece[0] !== color
+            ){
+                continue;
+            }
+            for(let toRow=0; toRow<8; toRow++){
+                for(let toCol=0; toCol<8; toCol++){
+                    if(
+                        fromRow===toRow &&
+                        fromCol===toCol
+                    ){
+                        continue;
+                    }
+                    const targetPiece =
+                        board[toRow][toCol];
+                    // Can't capture own piece
+                    if(
+                        targetPiece !== "" &&
+                        targetPiece[0] === color
+                    ){
+                        continue;
+                    }
+                    const validMove =
+                        isValidMove(
+                            piece,
+                            fromRow,
+                            fromCol,
+                            toRow,
+                            toCol
+                        );
+                    if(!validMove){
+                        continue;
+                    }
+                    const pathClear =
+                        isPathClear(
+                            piece,
+                            fromRow,
+                            fromCol,
+                            toRow,
+                            toCol
+                        );
+                    if(!pathClear){
+                        continue;
+                    }
+                    const kingStillInCheck =
+                        wouldLeaveKingInCheck(
+                            fromRow,
+                            fromCol,
+                            toRow,
+                            toCol,
+                            color
+                        );
+                    if(!kingStillInCheck){
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
 }
 
