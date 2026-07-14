@@ -56,6 +56,11 @@ squares.forEach(square=>{
         return;
       }
       const piece = board[selected.row][selected.col];
+      const targetPiece = board[row][col];
+      if(targetPiece!="" && targetPiece[0]===piece[0]){
+        selected = null;
+        return;
+      }
       let validMove = isValidMove(
         piece,
         selected.row,
@@ -158,6 +163,19 @@ function isValidKingMove(fromRow,fromCol,toRow,toCol){
   );
 }
 function isValidPawnMove(piece,fromRow,fromCol,toRow,toCol){
+  //diognal capturing
+  if(piece==="wp" && toRow===fromRow-1 && Math.abs(toCol-fromCol)===1){
+    const targetPiece = board[toRow][toCol];
+    return(
+      targetPiece!=="" && targetPiece[0]==="b"
+    );
+  }
+  if(piece==="bp" &&toRow===fromRow+1 && Math.abs(toCol-fromCol)===1){
+    const targetPiece = board[toRow][toCol];
+    return(
+      targetPiece!=="" && targetPiece[0]==="w"
+    );
+  }
   if(fromCol!==toCol){
     return false;
   }
