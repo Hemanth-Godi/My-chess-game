@@ -1,5 +1,6 @@
 import {piecesMap} from "./pieces-map.js";
 const play = document.querySelector(".play-area");
+const boardElement = document.querySelector(".board");
 
 for(let i=0;i<64;i++){
   const square = document.createElement("div");
@@ -36,97 +37,200 @@ renderBoard();
 
 let selected = null;
 let currentPlayer = "w";
+let gameOver = false;
 const squares = document.querySelectorAll(".square");
 squares.forEach(square=>{
   square.addEventListener("click",()=>{
+    if(gameOver){
+      return;
+    }
     const row = Number(square.dataset.row);
     const col = Number(square.dataset.col);
     const piece = board[row][col];
     if(selected===null){
       if(piece!="" && piece[0]===currentPlayer){
-        selected = {
-          row,
-          col
-        };
-        console.log("Selected");
+        selectPiece(row,col);
       }
     }
     else{
       if(selected.row===row && selected.col===col){
-        selected = null;
+        clearSelection();
         return;
       }
-      const piece = board[selected.row][selected.col];
+      const selectedPiece = board[selected.row][selected.col];
       const targetPiece = board[row][col];
-      if(targetPiece!="" && targetPiece[0]===piece[0]){
-        selected = null;
+      if(targetPiece!="" && targetPiece[0]===selectedPiece[0]){
+        if(targetPiece[0]===currentPlayer){
+          selectPiece(row,col);
+        }
+        else{
+          clearSelection();
+        }
         return;
       }
-      let validMove = isValidMove(
-        piece,
-        selected.row,
-        selected.col,
-        row,
-        col);
-      let pathClear = true;
-      if(validMove){
-        if(piece==="wr"||piece==="br"){
-          pathClear = isPathClearRook(
-            selected.row,
-            selected.col,
-            row,
-            col
-          );
-        }
-        else if(piece==="wb"||piece==="bb"){
-          pathClear = isPathClearBishop(
-            selected.row,
-            selected.col,
-            row,
-            col
-          );
-        }
-        else if(piece==="wq"||piece==="bq"){
-          pathClear = isPathClearQueen(
-            selected.row,
-            selected.col,
-            row,
-            col
-          );
-        }
-     }
-     const color = piece[0];
-     if(validMove && pathClear 
-      && !wouldLeaveKingInCheck(
+      const color = selectedPiece[0];
+      const validMove = canMoveTo(
+        selectedPiece,
         selected.row,
         selected.col,
         row,
         col,
         color
-      )
-     ){
+      );
+     if(validMove){
       board[row][col] = board[selected.row][selected.col];
       board[selected.row][selected.col] = "";
-      if(isKingInCheck("w")){
-        console.log("White in check");
+      clearSelection();
+      renderBoard();
+      const opponent =
+        color==="w"
+        ? "b"
+        : "w";
+      if(isCheckmate(opponent)){
+        endGame(color);
+        return;
       }
-      if(isKingInCheck("b")){
-        console.log("Black in check");
-      }
-      if(isCheckmate("w")){
-        console.log("Checkmate! Black wins!");
-      }
-      if(isCheckmate("b")){
-        console.log("Checkmate! White wins!");
+      if(isKingInCheck(opponent)){
+        console.log(
+          opponent==="w"
+          ? "White in check"
+          : "Black in check"
+        );
       }
       currentPlayer = currentPlayer==="w"?"b":"w";
       console.log("Turn",currentPlayer);
-      renderBoard();
      }
-     selected = null;
+     clearSelection();
    }
   });
 });
+
+function selectPiece(row,col){
+  selected = {
+    row,
+    col
+  };
+  showMoveHints(row,col);
+}
+
+function clearSelection(){
+  selected = null;
+  clearMoveHints();
+}
+
+function clearMoveHints(){
+  squares.forEach(square=>{
+    square.classList.remove(
+      "selected",
+      "move-hint",
+      "capture-hint"
+    );
+  });
+}
+
+function endGame(winnerColor){
+  gameOver = true;
+  clearSelection();
+  const winner =
+    winnerColor==="w"
+    ? "White"
+    : "Black";
+  const overlay = document.createElement("div");
+  overlay.classList.add("game-over");
+  overlay.innerHTML=`
+    <div class="game-over-panel">
+      <span class="game-over-label">Checkmate</span>
+      <strong>${winner} wins</strong>
+    </div>
+  `;
+  boardElement.appendChild(overlay);
+}
+
+function showMoveHints(row,col){
+  clearMoveHints();
+  const selectedSquare = squares[row*8+col];
+  selectedSquare.classList.add("selected");
+  const legalMoves = getLegalMoves(row,col);
+  legalMoves.forEach(move=>{
+    const square = squares[move.row*8+move.col];
+    if(board[move.row][move.col]===""){
+      square.classList.add("move-hint");
+    }
+    else{
+      square.classList.add("capture-hint");
+    }
+  });
+}
+
+function getLegalMoves(fromRow,fromCol){
+  const piece = board[fromRow][fromCol];
+  if(piece==="" || piece[0]!==currentPlayer){
+    return [];
+  }
+  const legalMoves = [];
+  for(let toRow=0; toRow<8; toRow++){
+    for(let toCol=0; toCol<8; toCol++){
+      if(canMoveTo(
+        piece,
+        fromRow,
+        fromCol,
+        toRow,
+        toCol,
+        piece[0]
+      )){
+        legalMoves.push({
+          row:toRow,
+          col:toCol
+        });
+      }
+    }
+  }
+  return legalMoves;
+}
+
+function canMoveTo(
+  piece,
+  fromRow,
+  fromCol,
+  toRow,
+  toCol,
+  color
+){
+  if(fromRow===toRow && fromCol===toCol){
+    return false;
+  }
+  const targetPiece = board[toRow][toCol];
+  if(targetPiece!=="" && targetPiece[0]===color){
+    return false;
+  }
+  const validMove = isValidMove(
+    piece,
+    fromRow,
+    fromCol,
+    toRow,
+    toCol
+  );
+  if(!validMove){
+    return false;
+  }
+  const pathClear = isPathClear(
+    piece,
+    fromRow,
+    fromCol,
+    toRow,
+    toCol
+  );
+  if(!pathClear){
+    return false;
+  }
+  return !wouldLeaveKingInCheck(
+    fromRow,
+    fromCol,
+    toRow,
+    toCol,
+    color
+  );
+}
 
 function isValidMove(piece,fromRow,fromCol,toRow,toCol){
   switch(piece){
@@ -204,18 +308,28 @@ function isValidPawnMove(piece,fromRow,fromCol,toRow,toCol){
     return false;
   }
   if(piece==="wp"){
-    if(toRow===fromRow-1){
+    if(toRow===fromRow-1 && board[toRow][toCol]===""){
       return true;
     }
-    if(fromRow===6 && toRow===4){
+    if(
+      fromRow===6 &&
+      toRow===4 &&
+      board[5][fromCol]==="" &&
+      board[toRow][toCol]===""
+    ){
       return true;
     }
   }
   if(piece==="bp"){
-    if(toRow===fromRow+1){
+    if(toRow===fromRow+1 && board[toRow][toCol]===""){
       return true;
     } 
-    if(fromRow===1 && toRow===3){
+    if(
+      fromRow===1 &&
+      toRow===3 &&
+      board[2][fromCol]==="" &&
+      board[toRow][toCol]===""
+    ){
       return true;
     }
   }
