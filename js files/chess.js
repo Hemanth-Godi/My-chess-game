@@ -1,6 +1,12 @@
 import {piecesMap} from "./pieces-map.js";
 const play = document.querySelector(".play-area");
 const boardElement = document.querySelector(".board");
+const sounds = {
+  move:new Audio("sound/move.mp3"),
+  capture:new Audio("sound/capture.mp3"),
+  check:new Audio("sound/check.ogg"),
+  checkmate:new Audio("sound/checkmate.mp3")
+};
 
 for(let i=0;i<64;i++){
   const square = document.createElement("div");
@@ -69,6 +75,7 @@ squares.forEach(square=>{
         return;
       }
       const color = selectedPiece[0];
+      const isCapture = targetPiece!=="";
       const validMove = canMoveTo(
         selectedPiece,
         selected.row,
@@ -87,15 +94,23 @@ squares.forEach(square=>{
         ? "b"
         : "w";
       if(isCheckmate(opponent)){
+        playSound("checkmate");
         endGame(color);
         return;
       }
       if(isKingInCheck(opponent)){
+        playSound("check");
         console.log(
           opponent==="w"
           ? "White in check"
           : "Black in check"
         );
+      }
+      else if(isCapture){
+        playSound("capture");
+      }
+      else{
+        playSound("move");
       }
       currentPlayer = currentPlayer==="w"?"b":"w";
       console.log("Turn",currentPlayer);
@@ -126,6 +141,15 @@ function clearMoveHints(){
       "capture-hint"
     );
   });
+}
+
+function playSound(soundName){
+  const sound = sounds[soundName];
+  if(!sound){
+    return;
+  }
+  sound.currentTime = 0;
+  sound.play().catch(()=>{});
 }
 
 function endGame(winnerColor){
