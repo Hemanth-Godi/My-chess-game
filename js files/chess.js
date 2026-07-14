@@ -35,6 +35,7 @@ for(let i=0;i<8;i++){
 renderBoard();
 
 let selected = null;
+let currentPlayer = "w";
 const squares = document.querySelectorAll(".square");
 squares.forEach(square=>{
   square.addEventListener("click",()=>{
@@ -42,7 +43,7 @@ squares.forEach(square=>{
     const col = Number(square.dataset.col);
     const piece = board[row][col];
     if(selected===null){
-      if(piece!=""){
+      if(piece!="" && piece[0]===currentPlayer){
         selected = {
           row,
           col
@@ -97,6 +98,8 @@ squares.forEach(square=>{
      if(validMove && pathClear){
       board[row][col] = board[selected.row][selected.col];
       board[selected.row][selected.col] = "";
+      currentPlayer = currentPlayer==="w"?"b":"w";
+      console.log("Turn",currentPlayer);
       renderBoard();
      }
      selected = null;
