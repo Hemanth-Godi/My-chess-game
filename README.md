@@ -50,17 +50,20 @@ No external libraries or frameworks were used — the entire engine is hand-writ
 ## 📂 Project Structure
 
 ```
-chess-game/
+My-chess-game/
 ├── index.html        # Main HTML structure of the board
 ├── style.css          # Board and piece styling
-├── script.js           # Core game logic (moves, rules, turns, check/checkmate)
+├── js files/           # Core game logic (moves, rules, turns, check/checkmate)
+├── images/
+├── screenshots/
+├── sound/         
 └── README.md
 ```
 
 ---
 
 ## 🧠 How It Works
-
+> **Note:** The code snippets below are simplified examples. The actual implementation and function names are available in the repository.
 ### 1. Board Representation
 
 The board is represented internally as an 8x8 array (or a similar grid structure), where each cell holds either `null` (empty) or a piece object describing its type and color.
