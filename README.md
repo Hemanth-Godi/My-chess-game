@@ -3,8 +3,8 @@
 A fully playable chess game built using **HTML**, **CSS**, and **vanilla JavaScript** — no frameworks, no libraries, just the DOM and a lot of logic. This project was built to understand how a real chess engine tracks state, validates moves, and detects game-ending conditions.
 
 ## Screenshots
-![chess game](screenshots/chess-board-final)
-![chess game](screenshots/chess-capturing)
+![chess game](screenshots/chess-board-final.png)
+![chess game](screenshots/chess-capturing.png)
 
 
 ---
